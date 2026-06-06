@@ -107,19 +107,19 @@
 
           function handleFallbackRecipe() {
             setRecipe({
-              name: ingredients.length > 0 ? `${ingredients[0]}를 곁들인 따뜻한 볶음요리` : "든든한 냉장고 털기 한 그릇",
+              name: ingredients.length > 0 ? `[${category}] ${ingredients[0]}를 곁들인 따뜻한 요리` : `든든한 ${category} 한 그릇`,
               difficulty: difficulty,
               time: "15분",
               servings: "1인분",
-              description: "냉장고에 남은 소중한 재료들을 모아 노릇하게 조리해낸 따뜻한 한 끼 식사예요.",
+              description: `냉장고에 남은 재료들을 모아 정성스럽게 조리해낸 따뜻한 ${category} 스타일의 한 끼 식사예요.`,
               ingredients: ingredients.map(i => ({ name: i, amount: "적당량", is_owned: true })),
               steps: [
-                "준비한 재료들을 먹기 좋은 크기로 송송 썰어 손질해 줍니다.",
-                "달궈진 팬에 식용유나 버터를 두르고 단단한 재료부터 순서대로 볶아줍니다.",
-                "밥이나 면이 있다면 함께 넣어 볶다가 소금, 간장 혹은 고추장으로 알맞게 간을 맞춥니다.",
-                "참기름을 한 방울 톡 떨어뜨린 후 그릇에 예쁘게 담아 완성합니다."
+                "준비한 재료들을 요리 스타일에 맞게 적당한 크기로 손질해 줍니다.",
+                "달궈진 팬이나 냄비에 알맞은 오일을 두르고 단단한 재료부터 순서대로 조리합니다.",
+                "선택하신 옵션에 맞춰 양념(간장, 고추장, 소금 등)을 더해 조화로운 맛을 냅니다.",
+                "예쁜 그릇에 정성껏 담아내어 따뜻할 때 맛있게 즐깁니다."
               ],
-              tip: "기호에 따라 달걀프라이나 치즈를 얹어 드시면 풍미가 더욱 깊어집니다."
+              tip: "기호에 따라 어울리는 허브나 통깨를 살짝 얹어내면 비주얼이 더욱 살아납니다."
             });
           }
 
@@ -130,7 +130,6 @@
             setRecipe(null);
             setCheckedSteps({});
             
-            // 외부 서버 없이 배포될 때는 안전하게 기본 레시피 데이터를 바로 보여주도록 설계
             setTimeout(() => {
               handleFallbackRecipe();
               setLoading(false);
@@ -232,13 +231,57 @@
                 </div>
 
                 <div style={styles.card}>
-                  <div style={styles.sectionLabel}>⚙️ 옵션</div>
-                  <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
+                  <div style={styles.sectionLabel}>⚙️ 옵션 설정</div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+                    {/* 카테고리 선택란 추가 */}
                     <div>
-                      <div style={{ fontSize: "0.8rem", color: "#9a7456", marginBottom: "0.4rem" }}>난이도</div>
-                      {["쉬움","보통","도전"].map(d => (
-                        <button key={d} onClick={() => setDifficulty(d)} style={{ padding: "0.4rem 0.8rem", marginRight: "0.3rem", borderRadius: 10, cursor: "pointer", background: difficulty === d ? "#c4763a" : "rgba(180,140,100,0.1)", color: difficulty === d ? "#fff" : "#7a4f2e", border: "none" }}>{d}</button>
-                      ))}
+                      <div style={{ fontSize: "0.85rem", fontWeight: "600", color: "#7a4f2e", marginBottom: "0.5rem", fontFamily: "sans-serif" }}>식사 종류 (카테고리)</div>
+                      <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap" }}>
+                        {["한식", "양식", "일식/중식", "아무거나"].map(c => (
+                          <button 
+                            key={c} 
+                            onClick={() => setCategory(c)} 
+                            style={{ 
+                              padding: "0.5rem 1rem", 
+                              borderRadius: 12, 
+                              cursor: "pointer", 
+                              background: category === c ? "#c4763a" : "rgba(180,140,100,0.1)", 
+                              color: category === c ? "#fff" : "#7a4f2e", 
+                              border: "none",
+                              fontSize: "0.85rem",
+                              fontWeight: category === c ? "600" : "400",
+                              transition: "all 0.2s"
+                            }}
+                          >
+                            {c}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <div style={{ fontSize: "0.85rem", fontWeight: "600", color: "#7a4f2e", marginBottom: "0.5rem", fontFamily: "sans-serif" }}>조리 난이도</div>
+                      <div style={{ display: "flex", gap: "0.4rem" }}>
+                        {["쉬움","보통","도전"].map(d => (
+                          <button 
+                            key={d} 
+                            onClick={() => setDifficulty(d)} 
+                            style={{ 
+                              padding: "0.5rem 1rem", 
+                              borderRadius: 12, 
+                              cursor: "pointer", 
+                              background: difficulty === d ? "#c4763a" : "rgba(180,140,100,0.1)", 
+                              color: difficulty === d ? "#fff" : "#7a4f2e", 
+                              border: "none",
+                              fontSize: "0.85rem",
+                              fontWeight: difficulty === d ? "600" : "400",
+                              transition: "all 0.2s"
+                            }}
+                          >
+                            {d}
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 </div>
