@@ -23,7 +23,7 @@
           "치즈","우유","요거트","사과","바나나","토마토","오이","상추","깻잎","버섯",
           "애호박","고구마","브로콜리","시금치","콩나물","숙주","파프리카","양배추",
           "고추","생강","레몬","식초","굴소스","케첩","마요네즈","쌈장","고춧가루",
-          "파스타","빵","쌀","보리","현미","두유","아몬드","호두","깨","들기름"
+          "파스타","빵","쌀","보리","현미","두유","아몬드","호두","깨","들기름","계란"
         ];
 
         const PASTEL_COLORS = [
@@ -47,6 +47,82 @@
           "맛있는 한 끼를 준비 중이에요. 잠시만요...",
         ];
 
+        // 재료 기반 스마트 매칭 데이터베이스
+        const RECIPE_DATABASE = [
+          {
+            keywords: ["김치", "밥", "스팸"],
+            name: "매콤 짭조름한 스팸 김치볶음밥",
+            description: "잘 익은 김치와 짭짤한 스팸을 달달 볶아 맛이 없을 수가 없는 최고의 조합 한 그릇 요리예요.",
+            time: "15분",
+            steps: [
+              "스팸과 김치, 대파나 양파가 있다면 잘게 가위나 칼로 썰어 준비합니다.",
+              "팬에 식용유를 두르고 대파나 양파를 먼저 볶아 향을 낸 뒤 스팸을 넣어 노릇하게 굽습니다.",
+              "썰어둔 김치를 넣고 설탕 반 스푼을 가미해 김치가 투명해질 때까지 달달 볶아줍니다.",
+              "불을 약하게 줄이거나 끈 뒤, 밥을 넣고 양념이 골고루 배도록 주걱으로 잘 섞어줍니다.",
+              "마지막으로 센 불에서 가볍게 한 번 더 볶아낸 후 참기름을 두르고 계란 프라이를 얹어 완성합니다."
+            ],
+            tip: "김치 신맛이 강하다면 설탕을 조금 더 넣어주시고, 간이 심심하면 간장이나 굴소스를 팬 가장자리에 태우듯 불맛을 내 섞어보세요."
+          },
+          {
+            keywords: ["김치", "참치", "밥"],
+            name: "고소하고 매콤한 참치 김치볶음밥",
+            description: "참치의 고소한 기름맛이 김치의 매콤함과 어우러져 중독성 있는 부드러운 볶음밥입니다.",
+            time: "12분",
+            steps: [
+              "김치는 잘게 썰어두고, 참치캔은 기름을 살짝만 남기고 짜서 준비합니다.",
+              "팬에 참치 기름을 둘러 열을 올린 후, 썰어둔 김치를 먼저 넣고 달달 달콤하게 볶아줍니다.",
+              "김치가 어느 정도 익으면 참치 살코기를 넣고 부숴가며 함께 볶아줍니다.",
+              "준비된 밥을 투하하고 주걱을 세워 알갱이가 살아나도록 골고루 비벼가며 볶습니다.",
+              "마지막에 통깨와 참기름을 살짝 둘러 고소함을 극대화합니다."
+            ],
+            tip: "마요네즈를 완성된 볶음밥 위에 얇게 뿌려 먹으면 매운맛도 중화되고 훨씬 부드러워집니다."
+          },
+          {
+            keywords: ["밥", "달걀", "간장"],
+            aliases: { "달걀": ["계란"] },
+            name: "추억의 버터 간장 계란밥",
+            description: "마땅한 반찬이 없을 때, 고소한 버터나 참기름 한 스푼으로 든든하게 채우는 최고의 소울푸드입니다.",
+            time: "5분",
+            steps: [
+              "달궈진 팬에 기름을 두르고 계란을 취향껏 프라이합니다. (노른자를 살리는 반숙을 추천해요!)",
+              "따뜻한 밥을 대접에 예쁘게 담아냅니다.",
+              "밥 위에 버터 한 조각(혹은 참기름 1스푼)과 진간장 1~1.5스푼을 둘러줍니다.",
+              "갓 구워낸 따끈한 계란 프라이를 밥 위에 살포시 얹어줍니다.",
+              "노른자를 톡 터뜨려 간장, 버터가 잘 녹아들도록 슥슥 비벼 맛있게 즐깁니다."
+            ],
+            tip: "집에 김가루나 통깨가 있다면 아낌없이 뿌려주세요. 풍미가 한층 더 깊어집니다."
+          },
+          {
+            keywords: ["김치", "두부"],
+            name: "따끈하고 칼칼한 백종원식 김치찌개",
+            description: "잘 익은 김치와 부드러운 두부로 끓여내어 밥 한 공기 뚝딱 비우게 만드는 국민 찌개예요.",
+            time: "25분",
+            steps: [
+              "김치는 한입 크기로 썰고, 두부도 도톰하게 썰어 준비합니다.",
+              "냄비에 참기름을 두르고 김치를 충분히 볶아 부드럽게 만들어 줍니다. (고기가 있다면 이때 같이 볶아줍니다.)",
+              "김치가 숨이 죽으면 물 또는 쌀뜨물을 재료가 자작하게 잠길 정도로 붓고 센 불로 끓입니다.",
+              "국물이 끓어오르면 다진 마늘과 고춧가루, 국간장으로 칼칼하게 간을 맞춰줍니다.",
+              "마지막으로 썰어둔 두부와 대파를 송송 썰어 넣고 중불에서 5분간 더 은은하게 졸여 완성합니다."
+            ],
+            tip: "설탕을 반 티스푼 정도 넣어주면 김치의 찌르는 듯한 신맛을 잡고 감칠맛을 확 올려줍니다."
+          },
+          {
+            keywords: ["라면", "달걀"],
+            aliases: { "달걀": ["계란"] },
+            name: "분식집 스타일 명품 계란 라면",
+            description: "평범한 라면에 계란 푸는 타이밍을 조절해 국물맛은 살리고 면발은 쫄깃하게 만드는 황금 가이드입니다.",
+            time: "8분",
+            steps: [
+              "냄비에 정량의 물을 올리고 건더기 스프와 분말 스프를 먼저 넣어 물을 끓입니다.",
+              "물이 격렬하게 끓어오르면 면을 넣고, 젓가락으로 면을 들었다 놨다 하며 공기와 접촉시켜 쫄깃함을 살립니다.",
+              "계란은 미리 그릇에 깨서 노른자만 살짝 멍울을 풀어 준비해 둡니다.",
+              "면이 90% 정도 익었을 때 가장자리를 따라 계란물을 빙 둘러 넣어줍니다.",
+              "★주의! 계란을 넣은 후 바로 젓지 말고, 그대로 10초간 두어야 국물이 탁해지지 않고 깔끔하고 몽글몽글해집니다."
+            ],
+            tip: "불을 끄기 직전 대파나 청양고추를 송송 썰어 넣으면 파향이 배어 훨씬 깔끔하고 매콤합니다."
+          }
+        ];
+
         function App() {
           const [page, setPage] = useState("home"); 
           const [query, setQuery] = useState("");
@@ -61,7 +137,6 @@
           const [checkedSteps, setCheckedSteps] = useState({});
           const [subModal, setSubModal] = useState(null); 
           const [subAnswer, setSubAnswer] = useState("");
-          const [subLoading, setSubLoading] = useState(false);
           const inputRef = useRef(null);
           const loadingInterval = useRef(null);
 
@@ -104,6 +179,34 @@
             }));
           }
 
+          // 유저가 고른 재료들과 매칭되는 최적의 레시피 검색 알고리즘
+          function findBestRecipe() {
+            let bestMatch = null;
+            let maxMatches = 0;
+
+            for (const r of RECIPE_DATABASE) {
+              let matchCount = 0;
+              for (const keyword of r.keywords) {
+                // 일반 검색 혹은 동의어(계란/달걀) 체크
+                const hasDirect = ingredients.includes(keyword);
+                let hasAlias = false;
+                if (r.aliases && r.aliases[keyword]) {
+                  hasAlias = r.aliases[keyword].some(alias => ingredients.includes(alias));
+                }
+                
+                if (hasDirect || hasAlias) {
+                  matchCount++;
+                }
+              }
+
+              if (matchCount > maxMatches && matchCount >= 1) {
+                maxMatches = matchCount;
+                bestMatch = r;
+              }
+            }
+            return bestMatch;
+          }
+
           async function generateRecipe() {
             if (ingredients.length === 0) return;
             setLoading(true);
@@ -111,22 +214,40 @@
             setRecipe(null);
             setCheckedSteps({});
 
-            // 임시 에뮬레이트 처리 (오프라인 상태 및 테스트 대응용 기본 레시피 반환 구조)
             setTimeout(() => {
-              setRecipe({
-                name: `[${category}] 선택한 재료로 만든 든든한 한 끼 요리`,
-                difficulty: difficulty,
-                time: "15분",
-                servings: "1인분",
-                description: "냉장고 재료로 뚝딱 만드는 따뜻한 한 끼예요.",
-                ingredients: ingredients.map(i => ({ name: i, amount: "적당량", is_owned: true })),
-                steps: [
-                  "준비한 재료를 깨끗하게 손질해 주세요.",
-                  "팬에 기름을 적당히 두르고 단단한 재료부터 순서대로 볶아줍니다.",
-                  "기호에 맞게 간장이나 소금으로 간을 맞추고 그릇에 담아 완성합니다."
-                ],
-                tip: "남은 야채가 있다면 함께 곁들여 드셔도 정말 맛있습니다."
-              });
+              const matched = findBestRecipe();
+
+              if (matched) {
+                // 매칭된 커스텀 레시피가 있을 경우 제공
+                setRecipe({
+                  name: `[${category === "아무거나" ? "추천" : category}] ${matched.name}`,
+                  difficulty: difficulty,
+                  time: matched.time,
+                  description: matched.description,
+                  ingredients: ingredients.map(i => ({ name: i, amount: "적당량", is_owned: true })),
+                  steps: matched.steps,
+                  tip: matched.tip
+                });
+              } else {
+                // 매칭되는 특별한 요리가 없을 때 유연하게 지어내는 동적 기본 레시피
+                const mainIng = ingredients[0];
+                const subIng = ingredients[1] ? `, ${ingredients[1]}` : "";
+                setRecipe({
+                  name: `[${category}] ${mainIng} 정성 볶음 요리`,
+                  difficulty: difficulty,
+                  time: "15분",
+                  description: `냉장고 속 소중한 ${mainIng}${subIng} 재료들을 조화롭게 활용해 입맛을 돋우는 특제 한 그릇 요리입니다.`,
+                  ingredients: ingredients.map(i => ({ name: i, amount: "적당량", is_owned: true })),
+                  steps: [
+                    `${mainIng}와 주재료들을 흐르는 물에 깨끗이 세척한 뒤 한입 크기로 슬라이스해 줍니다.`,
+                    "달궈진 소스팬에 식용유나 버터를 두르고 대파나 마늘을 먼저 볶아 향긋한 베이스 기름을 만듭니다.",
+                    `손질해 둔 ${mainIng}을 비롯해 단단한 부재료 순서대로 팬에 투하해 강불에서 빠르게 휘리릭 볶아냅니다.`,
+                    "선택하신 난이도 옵션에 맞춰 소금, 후추 또는 간장 한 스푼으로 가볍게 은은한 감칠맛을 더해 줍니다.",
+                    "불을 끄고 참기름이나 통깨를 한소끔 가미한 뒤 예쁜 대접에 담아 따뜻하게 채워줍니다."
+                  ],
+                  tip: "기호에 따라 고추장이나 굴소스를 반 스푼 곁들이면 훨씬 다채로운 풍미를 경험할 수 있습니다."
+                });
+              }
               setLoading(false);
             }, 1200);
           }
@@ -225,11 +346,9 @@
                   )}
                 </div>
 
-                {/* 원본 아티팩트와 완전 동일한 가로 반반 배치 옵션 영역 */}
                 <div style={styles.card}>
                   <div style={styles.sectionLabel}>⚙️ 옵션</div>
                   <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
-                    {/* 난이도 영역 (왼쪽 50%) */}
                     <div style={{ flex: 1, minWidth: 160 }}>
                       <div style={{ fontSize: "0.8rem", color: "#9a7456", marginBottom: "0.4rem", fontFamily: "sans-serif" }}>난이도</div>
                       <div style={{ display: "flex", gap: "0.4rem" }}>
@@ -247,7 +366,6 @@
                       </div>
                     </div>
                     
-                    {/* 카테고리 영역 (오른쪽 50%) */}
                     <div style={{ flex: 1, minWidth: 160 }}>
                       <div style={{ fontSize: "0.8rem", color: "#9a7456", marginBottom: "0.4rem", fontFamily: "sans-serif" }}>카테고리</div>
                       <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap" }}>
@@ -303,7 +421,7 @@
                 <div style={styles.main}>
                   <div style={styles.card}>
                     <h1 style={{ fontSize: "1.6rem", color: "#5c3318", margin: "0 0 0.5rem" }}>{recipe.name}</h1>
-                    <p style={{ color: "#9a7456", fontSize: "0.9rem", marginBottom: "1rem" }}>{recipe.description}</p>
+                    <p style={{ color: "#9a7456", fontSize: "0.9rem", marginBottom: "1rem", lineHeight: 1.5 }}>{recipe.description}</p>
                     <div style={{ display: "flex", gap: "0.5rem" }}>
                       <span style={{ background: "rgba(180,140,100,0.1)", padding: "0.3rem 0.6rem", borderRadius: 8, fontSize: "0.8rem" }}>⏱ {recipe.time}</span>
                       <span style={{ background: "rgba(180,140,100,0.1)", padding: "0.3rem 0.6rem", borderRadius: 8, fontSize: "0.8rem" }}>⭐ {recipe.difficulty}</span>
@@ -327,11 +445,18 @@
                     <div style={styles.sectionLabel}>👨‍🍳 조리 순서</div>
                     {recipe.steps?.map((step, i) => (
                       <div key={i} style={styles.stepCard}>
-                        <div style={{ background: "#e09050", color: "#fff", padding: "0.2rem 0.5rem", borderRadius: "50%", fontSize: "0.8rem" }}>{i + 1}</div>
+                        <div style={{ background: "#e09050", color: "#fff", minWidth: "1.5rem", height: "1.5rem", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.8rem", flexShrink: 0 }}>{i + 1}</div>
                         <p style={{ margin: 0, fontSize: "0.9rem", lineHeight: 1.6 }}>{step}</p>
                       </div>
                     ))}
                   </div>
+
+                  {recipe.tip && (
+                    <div style={{ ...styles.card, background: "#fff9f2", border: "1px dashed #e09050", marginBottom: "2rem" }}>
+                      <div style={{ ...styles.sectionLabel, color: "#c4763a" }}>💡 소소한 꿀팁</div>
+                      <p style={{ margin: 0, fontSize: "0.88rem", lineHeight: 1.5, color: "#5c3318" }}>{recipe.tip}</p>
+                    </div>
+                  )}
 
                   <button style={styles.btn} onClick={() => { setPage("home"); setRecipe(null); }}>← 다른 재료로 다시 찾기</button>
                 </div>
