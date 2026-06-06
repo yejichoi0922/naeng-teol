@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🥘 냉털 - 냉장고 털기 레시피</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body style="margin: 0; padding: 0;">
+
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        const SAMPLE_INGREDIENTS = [
+          "달걀","양파","감자","당근","마늘","대파","두부","김치","고추장","된장",
+          "간장","식용유","참기름","버터","밀가루","설탕","소금","후추","밥","라면",
+          "돼지고기","소고기","닭고기","새우","오징어","참치","스팸","햄","베이컨",
+          "치즈","우유","요거트","사과","바나나","토마토","오이","상추","깻잎","버섯",
+          "애호박","고구마","브로콜리","시금치","콩나물","숙주","파프리카","양배추",
+          "고추","생강","레몬","식초","굴소스","케첩","마요네즈","쌈장","고춧가루",
+          "파스타","빵","쌀","보리","현미","두유","아몬드","호두","깨","들기름"
+        ];
+
+        const PASTEL_COLORS = [
+          { bg: "#e8f5e3", text: "#3a7a2e", border: "#b6dca8" },
+          { bg: "#fff0e6", text: "#9a5000", border: "#f5c899" },
+          { bg: "#f0e8f8", text: "#6a3d9a", border: "#c9a8e8" },
+          { bg: "#e6f0ff", text: "#1a4da0", border: "#a8c4f0" },
+          { bg: "#fff4e6", text: "#a05a00", border: "#f0c880" },
+          { bg: "#ffe6ec", text: "#9a1a3d", border: "#f0a8bc" },
+        ];
+
+        function getTagColor(name) {
+          let hash = 0;
+          for (let c of name) hash = (hash * 31 + c.charCodeAt(0)) % PASTEL_COLORS.length;
+          return PASTEL_COLORS[hash] || PASTEL_COLORS[0];
+        }
+
+        const COZY_MESSAGES = [
+          "따뜻한 레시피를 조리 가이드에 적어내려가고 있어요...",
+          "냉장고 재료로 최선의 요리를 찾고 있어요...",
+          "맛있는 한 끼를 준비 중이에요. 잠시만요...",
+        ];
+
+        function App() {
+          const [page, setPage] = useState("home"); 
+          const [query, setQuery] = useState("");
+          const [suggestions, setSuggestions] = useState([]);
+          const [ingredients, setIngredients] = useState([]);
+          const [freshness, setFreshness] = useState({}); 
+          const [difficulty, setDifficulty] = useState("쉬움");
+          const [category, setCategory] = useState("아무거나");
+          const [loading, setLoading] = useState(false);
+          const [loadingMsg, setLoadingMsg] = useState(0);
+          const [recipe, setRecipe] = useState(null);
+          const [checkedSteps, setCheckedSteps] = useState({});
+          const [subModal, setSubModal] = useState(null); 
+          const [subAnswer, setSubAnswer] = useState("");
+          const [subLoading, setSubLoading] = useState(false);
+          const inputRef = useRef(null);
+          const loadingInterval = useRef(null);
+
+          useEffect(() => {
+            if (!query || query.trim().length < 1) { setSuggestions([]); return; }
+            const filtered = SAMPLE_INGREDIENTS.filter(i =>
+              i.includes(query.trim()) && !ingredients.includes(i)
+            ).slice(0, 6);
+            setSuggestions(filtered);
+          }, [query, ingredients]);
+
+          useEffect(() => {
+            if (loading) {
+              loadingInterval.current = setInterval(() =>
+                setLoadingMsg(m => (m + 1) % COZY_MESSAGES.length), 2200);
+            } else {
+              clearInterval(loadingInterval.current);
+            }
+            return () => clearInterval(loadingInterval.current);
+          }, [loading]);
+
+          function addIngredient(name) {
+            if (!name || !name.trim() || ingredients.includes(name.trim())) return;
+            const target = name.trim();
+            setIngredients(p => [...p, target]);
+            setFreshness(p => ({ ...p, [target]: "신선함" }));
+            setQuery("");
+            setSuggestions([]);
+            setTimeout(() => inputRef.current?.focus(), 50);
+          }
+
+          function removeIngredient(name) {
+            setIngredients(p => p.filter(i => i !== name));
+            setFreshness(p => { const n = { ...p }; delete n[name]; return n; });
+          }
+
+          function toggleFreshness(name) {
+            setFreshness(p => ({
+              ...p,
+              [name]: p[name] === "신선함" ? "곧 상함" : "신선함",
+            }));
+          }
+
+          // 에러 발생 시 부드럽게 보여줄 기본 추천 요리 생성기
+          function handleFallbackRecipe() {
+            setRecipe({
+              name: ingredients.length > 0 ? `${ingredients[0]}를 곁들인 맛있는 볶음밥` : "든든한 냉장고 털기 한 그릇",
+              difficulty: difficulty,
+              time: "15분",
+              servings: "1인분",
+              description: "냉장고에 남은 소중한 재료들을 모아 노릇하게 볶아낸 따뜻한 한 끼 식사예요.",
+              ingredients: ingredients.map(i => ({ name: i, amount: "적당량", is_owned: true })),
+              steps: [
+                "준비한 재료들을 먹기 좋은 크기로 송송 썰어 손질해 줍니다.",
+                "달궈진 팬에 식용유나 버터를 두르고 단단한 재료부터 순서대로 볶아줍니다.",
+                "밥과 남은 재료를 함께 볶다가 소금, 간장 혹은 고추장으로 알맞게 간을 맞춥니다.",
+                "참기름을 한 방울 톡 떨어뜨린 후 그릇에 예쁘게 담아 완성합니다."
+              ],
+              tip: "기호에 따라 달걀프라이나 치즈를 얹어 드시면 풍미가 더욱 깊어집니다."
+            });
+          }
+
+          async function generateRecipe() {
+            if (ingredients.length === 0) return;
+            setLoading(true);
+            setPage("result");
+            setRecipe(null);
+            setCheckedSteps({});
+
+            const soonExpiring = ingredients.filter(i => freshness[i] === "곧 상함");
+            const prompt = `당신은 친절한 요리 도우미입니다. 다음 재료로 만들 수 있는 레시피를 JSON 형식으로 생성해주세요. 보유 재료: ${ingredients.join(", ")}`;
+
+            try {
+              const res = await fetch("https://api.anthropic.com/v1/messages", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  model: "claude-sonnet-4-20250514",
+                  max_tokens: 1000,
+                  messages: [{ role: "user", content: prompt }],
+                }),
+              });
+              
+              if (!res.ok) throw new Error("API 요청 실패");
+              
+              const data = await res.json();
+              const text = data.content.map(b => b.text || "").join("");
+              const clean = text.replace(/```json|
+```/g, "").trim();
+              const parsed = JSON.parse(clean);
+              setRecipe(parsed);
+            } catch (e) {
+              // API Key가 없거나 브라우저 보안 에러(CORS)가 나면 이곳으로 들어와 안전하게 기본 데이터를 띄웁니다.
+              handleFallbackRecipe();
+            }
+            setLoading(false);
+          }
+
+          async function askSubstitute(ingName) {
+            setSubModal(ingName);
+            setSubAnswer("");
+            setSubLoading(true);
+            try {
+              const res = await fetch("https://api.anthropic.com/v1/messages", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  model: "claude-sonnet-4-20250514",
+                  max_tokens: 200,
+                  messages: [{ role: "user", content: `"${ingName}" 대체 재료 추천` }],
+                }),
+              });
+              if (!res.ok) throw new Error();
+              const data = await res.json();
+              setSubAnswer(data.content.map(b => b.text || "").join(""));
+            } catch {
+              setSubAnswer(`"${ingName}" 대신 주변에서 쉽게 구할 수 있는 비슷한 계열의 야채나 양념을 사용하셔도 좋습니다. 혹은 과감히 제외하고 조리하셔도 본연의 맛을 즐기실 수 있어요!`);
+            }
+            setSubLoading(false);
+          }
+
+          const styles = {
+            app: { minHeight: "100vh", background: "linear-gradient(160deg, #fdf8f2 0%, #f5efe8 50%, #fdf6ee 100%)", fontFamily: "'Georgia', 'Noto Serif KR', serif", color: "#3d2e1e" },
+            nav: { padding: "1.2rem 2rem", display: "flex", alignItems: "center", gap: "0.75rem", borderBottom: "1px solid rgba(180,140,100,0.15)", background: "rgba(253,248,242,0.85)", backdropFilter: "blur(8px)", position: "sticky", top: 0, zIndex: 100 },
+            logo: { fontSize: "1.5rem", fontWeight: 700, letterSpacing: "-0.02em", color: "#7a4f2e" },
+            logoSub: { fontSize: "0.75rem", color: "#b08060", fontFamily: "sans-serif", fontWeight: 400 },
+            main: { maxWidth: 680, margin: "0 auto", padding: "2.5rem 1.5rem", boxSizing: "border-box" },
+            hero: { textAlign: "center", marginBottom: "2.5rem" },
+            heroEmoji: { fontSize: "3rem", marginBottom: "0.5rem", display: "block" },
+            heroTitle: { fontSize: "2rem", fontWeight: 700, color: "#5c3318", lineHeight: 1.2, marginBottom: "0.5rem" },
+            heroSub: { fontSize: "0.95rem", color: "#9a7456", fontFamily: "sans-serif", lineHeight: 1.6 },
+            card: { background: "rgba(255,252,248,0.92)", borderRadius: 20, border: "1px solid rgba(180,140,100,0.2)", padding: "1.5rem", marginBottom: "1.25rem", boxShadow: "0 2px 16px rgba(120,80,40,0.06)" },
+            sectionLabel: { fontSize: "0.8rem", fontWeight: 600, color: "#b08060", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "0.75rem", fontFamily: "sans-serif" },
+            inputWrap: { position: "relative" },
+            input: { width: "100%", padding: "0.85rem 1.1rem", fontSize: "0.95rem", border: "1.5px solid rgba(180,140,100,0.3)", borderRadius: 14, background: "rgba(255,250,245,0.8)", color: "#3d2e1e", fontFamily: "sans-serif", outline: "none", boxSizing: "border-box" },
+            suggestions: { position: "absolute", top: "calc(100% + 4px)", left: 0, right: 0, background: "rgba(255,252,248,0.98)", border: "1px solid rgba(180,140,100,0.2)", borderRadius: 12, boxShadow: "0 8px 24px rgba(120,80,40,0.1)", zIndex: 50, overflow: "hidden" },
+            suggItem: { padding: "0.65rem 1rem", cursor: "pointer", fontSize: "0.9rem", fontFamily: "sans-serif", color: "#5c3318" },
+            tags: { display: "flex", flexWrap: "wrap", gap: "0.5rem", marginTop: "1rem" },
+            btn: { display: "block", width: "100%", padding: "1rem", fontSize: "1rem", fontWeight: 600, background: "linear-gradient(135deg, #c4763a 0%, #e09050 100%)", color: "#fff", border: "none", borderRadius: 16, cursor: "pointer", fontFamily: "sans-serif" },
+            btnSecondary: { padding: "0.5rem 1rem", fontSize: "0.82rem", background: "rgba(180,140,100,0.12)", color: "#7a4f2e", border: "1px solid rgba(180,140,100,0.25)", borderRadius: 10, cursor: "pointer", fontFamily: "sans-serif" },
+            stepCard: { background: "rgba(255,252,248,0.95)", borderRadius: 16, border: "1px solid rgba(180,140,100,0.15)", padding: "1.1rem 1.25rem", marginBottom: "0.75rem", display: "flex", gap: "1rem", alignItems: "flex-start" }
+          };
+
+          if (page === "home") return (
+            <div style={styles.app}>
+              <nav style={styles.nav}>
+                <div>
+                  <div style={styles.logo}>🥘 냉털</div>
+                  <div style={styles.logoSub}>냉장고 털기 레시피</div>
+                </div>
+              </nav>
+              <div style={styles.main}>
+                <div style={styles.hero}>
+                  <span style={styles.heroEmoji}>🌿</span>
+                  <h1 style={styles.heroTitle}>오늘 냉장고에<br/>뭐가 남아있나요?</h1>
+                  <p style={styles.heroSub}>재료를 입력하면 딱 맞는 레시피를 찾아드릴게요.<br/>버리기 아까운 재료도 맛있는 한 끼가 될 수 있어요.</p>
+                </div>
+
+                <div style={styles.card}>
+                  <div style={styles.sectionLabel}>📦 재료 입력</div>
+                  <div style={styles.inputWrap}>
+                    <input
+                      ref={inputRef}
+                      style={styles.input}
+                      placeholder="지금 냉장고에 남아있는 재료를 알려주세요..."
+                      value={query}
+                      onChange={e => setQuery(e.target.value)}
+                      onKeyDown={e => {
+                        if (e.key === "Enter" && query.trim()) {
+                          if (suggestions.length > 0) addIngredient(suggestions[0]);
+                          else addIngredient(query.trim());
+                        }
+                      }}
+                    />
+                    {suggestions.length > 0 && (
+                      <div style={styles.suggestions}>
+                        {suggestions.map(s => (
+                          <div
+                            key={s}
+                            style={styles.suggItem}
+                            onClick={() => addIngredient(s)}
+                          >{s}</div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {ingredients.length > 0 && (
+                    <div style={styles.tags}>
+                      {ingredients.map(ing => {
+                        const color = getTagColor(ing);
+                        const expiring = freshness[ing] === "곧 상함";
+                        return (
+                          <div key={ing} style={{
+                            display: "flex", alignItems: "center", gap: "0.3rem",
+                            background: expiring ? "#fff0e0" : color.bg, color: expiring ? "#a04000" : color.text,
+                            border: `1.5px solid ${expiring ? "#f0c060" : color.border}`,
+                            borderRadius: 999, padding: "0.3rem 0.75rem 0.3rem 0.9rem", fontSize: "0.85rem", fontFamily: "sans-serif"
+                          }}>
+                            {expiring && <span>⚠️</span>}
+                            <span>{ing}</span>
+                            <button onClick={() => toggleFreshness(ing)} style={{ fontSize: "0.68rem", background: "rgba(0,0,0,0.06)", border: "none", borderRadius: 6, cursor: "pointer" }}>{freshness[ing]}</button>
+                            <button onClick={() => removeIngredient(ing)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: "0.9rem" }}>×</button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+
+                <div style={styles.card}>
+                  <div style={styles.sectionLabel}>⚙️ 옵션</div>
+                  <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
+                    <div>
+                      <div style={{ fontSize: "0.8rem", color: "#9a7456", marginBottom: "0.4rem" }}>난이도</div>
+                      {["쉬움","보통","도전"].map(d => (
+                        <button key={d} onClick={() => setDifficulty(d)} style={{ padding: "0.4rem 0.8rem", marginRight: "0.3rem", borderRadius: 10, cursor: "pointer", background: difficulty === d ? "#c4763a" : "rgba(180,140,100,0.1)", color: difficulty === d ? "#fff" : "#7a4f2e", border: "none" }}>{d}</button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <button style={styles.btn} onClick={generateRecipe} disabled={ingredients.length === 0}>🍳 레시피 찾아주세요!</button>
+              </div>
+            </div>
+          );
+
+          if (page === "result") return (
+            <div style={styles.app}>
+              <nav style={styles.nav}>
+                <button onClick={() => { setPage("home"); setRecipe(null); }} style={{ background: "none", border: "none", cursor: "pointer", fontSize: "1.2rem", color: "#7a4f2e" }}>← 뒤로가기</button>
+              </nav>
+
+              {loading ? (
+                <div style={{ ...styles.main, textAlign: "center", paddingTop: "5rem" }}>
+                  <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>🍲</div>
+                  <p style={{ color: "#7a4f2e", fontFamily: "sans-serif" }}>{COZY_MESSAGES[loadingMsg]}</p>
+                </div>
+              ) : recipe ? (
+                <div style={styles.main}>
+                  <div style={styles.card}>
+                    <h1 style={{ fontSize: "1.6rem", color: "#5c3318", margin: "0 0 0.5rem" }}>{recipe.name}</h1>
+                    <p style={{ color: "#9a7456", fontSize: "0.9rem", marginBottom: "1rem" }}>{recipe.description}</p>
+                    <div style={{ display: "flex", gap: "0.5rem" }}>
+                      <span style={{ background: "rgba(180,140,100,0.1)", padding: "0.3rem 0.6rem", borderRadius: 8, fontSize: "0.8rem" }}>⏱ {recipe.time}</span>
+                      <span style={{ background: "rgba(180,140,100,0.1)", padding: "0.3rem 0.6rem", borderRadius: 8, fontSize: "0.8rem" }}>⭐ {recipe.difficulty}</span>
+                    </div>
+                  </div>
+
+                  <div style={styles.card}>
+                    <div style={styles.sectionLabel}>🧺 레시피 재료 구성</div>
+                    {recipe.ingredients?.map((ing, i) => (
+                      <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "0.4rem 0", borderBottom: "1px solid rgba(0,0,0,0.04)" }}>
+                        <span>✅ {ing.name}</span>
+                        <div style={{ display: "flex", gap: "0.5rem" }}>
+                          <span style={{ color: "#9a7456" }}>{ing.amount}</span>
+                          {!ing.is_owned && <button onClick={() => askSubstitute(ing.name)} style={styles.btnSecondary}>대체?</button>}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div style={{ marginBottom: "2rem" }}>
+                    <div style={styles.sectionLabel}>👨‍🍳 조리 순서</div>
+                    {recipe.steps?.map((step, i) => (
+                      <div key={i} style={styles.stepCard}>
+                        <div style={{ background: "#e09050", color: "#fff", padding: "0.2rem 0.5rem", borderRadius: "50%", fontSize: "0.8rem" }}>{i + 1}</div>
+                        <p style={{ margin: 0, fontSize: "0.9rem", lineHeight: 1.6 }}>{step}</p>
+                      </div>
+                    ))}
+                  </div>
+
+                  <button style={styles.btn} onClick={() => { setPage("home"); setRecipe(null); }}>← 다른 재료로 다시 찾기</button>
+                </div>
+              ) : null}
+
+              {subModal && (
+                <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", display: "flex", alignItems: "center", justifyContent: "center" }} onClick={() => setSubModal(null)}>
+                  <div style={{ background: "#fffcf8", padding: "1.5rem", borderRadius: 16, maxWidth: 350, width: "100%" }} onClick={e => e.stopPropagation()}>
+                    <p style={{ fontSize: "0.9rem", lineHeight: 1.6 }}>{subAnswer}</p>
+                    <button onClick={() => setSubModal(null)} style={{ ...styles.btn, marginTop: "1rem", padding: "0.5rem" }}>닫기</button>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App/>);
+    </script>
+</body>
+</html>
