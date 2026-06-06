@@ -66,9 +66,9 @@
           const loadingInterval = useRef(null);
 
           useEffect(() => {
-            if (!query || query.trim().length < 1) { setSuggestions([]); return; }
+            if (query.trim().length < 1) { setSuggestions([]); return; }
             const filtered = SAMPLE_INGREDIENTS.filter(i =>
-              i.includes(query.trim()) && !ingredients.includes(i)
+              i.includes(query) && !ingredients.includes(i)
             ).slice(0, 6);
             setSuggestions(filtered);
           }, [query, ingredients]);
@@ -84,13 +84,12 @@
           }, [loading]);
 
           function addIngredient(name) {
-            if (!name || !name.trim() || ingredients.includes(name.trim())) return;
-            const target = name.trim();
-            setIngredients(p => [...p, target]);
-            setFreshness(p => ({ ...p, [target]: "신선함" }));
+            if (!name.trim() || ingredients.includes(name)) return;
+            setIngredients(p => [...p, name]);
+            setFreshness(p => ({ ...p, [name]: "신선함" }));
             setQuery("");
             setSuggestions([]);
-            setTimeout(() => inputRef.current?.focus(), 50);
+            inputRef.current?.focus();
           }
 
           function removeIngredient(name) {
@@ -105,40 +104,36 @@
             }));
           }
 
-          function handleFallbackRecipe() {
-            setRecipe({
-              name: ingredients.length > 0 ? `[${category}] ${ingredients[0]}를 곁들인 따뜻한 요리` : `든든한 ${category} 한 그릇`,
-              difficulty: difficulty,
-              time: "15분",
-              servings: "1인분",
-              description: `냉장고에 남은 재료들을 모아 정성스럽게 조리해낸 따뜻한 ${category} 스타일의 한 끼 식사예요.`,
-              ingredients: ingredients.map(i => ({ name: i, amount: "적당량", is_owned: true })),
-              steps: [
-                "준비한 재료들을 요리 스타일에 맞게 적당한 크기로 손질해 줍니다.",
-                "달궈진 팬이나 냄비에 알맞은 오일을 두르고 단단한 재료부터 순서대로 조리합니다.",
-                "선택하신 옵션에 맞춰 양념(간장, 고추장, 소금 등)을 더해 조화로운 맛을 냅니다.",
-                "예쁜 그릇에 정성껏 담아내어 따뜻할 때 맛있게 즐깁니다."
-              ],
-              tip: "기호에 따라 어울리는 허브나 통깨를 살짝 얹어내면 비주얼이 더욱 살아납니다."
-            });
-          }
-
           async function generateRecipe() {
             if (ingredients.length === 0) return;
             setLoading(true);
             setPage("result");
             setRecipe(null);
             setCheckedSteps({});
-            
+
+            // 임시 에뮬레이트 처리 (오프라인 상태 및 테스트 대응용 기본 레시피 반환 구조)
             setTimeout(() => {
-              handleFallbackRecipe();
+              setRecipe({
+                name: `[${category}] 선택한 재료로 만든 든든한 한 끼 요리`,
+                difficulty: difficulty,
+                time: "15분",
+                servings: "1인분",
+                description: "냉장고 재료로 뚝딱 만드는 따뜻한 한 끼예요.",
+                ingredients: ingredients.map(i => ({ name: i, amount: "적당량", is_owned: true })),
+                steps: [
+                  "준비한 재료를 깨끗하게 손질해 주세요.",
+                  "팬에 기름을 적당히 두르고 단단한 재료부터 순서대로 볶아줍니다.",
+                  "기호에 맞게 간장이나 소금으로 간을 맞추고 그릇에 담아 완성합니다."
+                ],
+                tip: "남은 야채가 있다면 함께 곁들여 드셔도 정말 맛있습니다."
+              });
               setLoading(false);
             }, 1200);
           }
 
           function askSubstitute(ingName) {
             setSubModal(ingName);
-            setSubAnswer(`"${ingName}" 대신 주변에서 쉽게 구할 수 있는 비슷한 야채나 양념을 사용하셔도 좋습니다. 혹은 과감히 제외하고 조리하셔도 본연의 맛을 충분히 즐기실 수 있어요!`);
+            setSubAnswer(`"${ingName}" 대신 주변에서 쉽게 구할 수 있는 비슷한 재료를 사용하시거나 과감히 제외하고 조리하셔도 본연의 맛을 충분히 즐기실 수 있어요!`);
           }
 
           const styles = {
@@ -146,7 +141,7 @@
             nav: { padding: "1.2rem 2rem", display: "flex", alignItems: "center", gap: "0.75rem", borderBottom: "1px solid rgba(180,140,100,0.15)", background: "rgba(253,248,242,0.85)", backdropFilter: "blur(8px)", position: "sticky", top: 0, zIndex: 100 },
             logo: { fontSize: "1.5rem", fontWeight: 700, letterSpacing: "-0.02em", color: "#7a4f2e" },
             logoSub: { fontSize: "0.75rem", color: "#b08060", fontFamily: "sans-serif", fontWeight: 400 },
-            main: { maxWidth: 680, margin: "0 auto", padding: "2.5rem 1.5rem", boxSizing: "border-box" },
+            main: { maxWidth: 680, margin: "0 auto", padding: "2.5rem 1.5rem" },
             hero: { textAlign: "center", marginBottom: "2.5rem" },
             heroEmoji: { fontSize: "3rem", marginBottom: "0.5rem", display: "block" },
             heroTitle: { fontSize: "2rem", fontWeight: 700, color: "#5c3318", lineHeight: 1.2, marginBottom: "0.5rem" },
@@ -230,63 +225,65 @@
                   )}
                 </div>
 
+                {/* 원본 아티팩트와 완전 동일한 가로 반반 배치 옵션 영역 */}
                 <div style={styles.card}>
-                  <div style={styles.sectionLabel}>⚙️ 옵션 설정</div>
-                  <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
-                    {/* 카테고리 선택란 추가 */}
-                    <div>
-                      <div style={{ fontSize: "0.85rem", fontWeight: "600", color: "#7a4f2e", marginBottom: "0.5rem", fontFamily: "sans-serif" }}>식사 종류 (카테고리)</div>
-                      <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap" }}>
-                        {["한식", "양식", "일식/중식", "아무거나"].map(c => (
-                          <button 
-                            key={c} 
-                            onClick={() => setCategory(c)} 
-                            style={{ 
-                              padding: "0.5rem 1rem", 
-                              borderRadius: 12, 
-                              cursor: "pointer", 
-                              background: category === c ? "#c4763a" : "rgba(180,140,100,0.1)", 
-                              color: category === c ? "#fff" : "#7a4f2e", 
-                              border: "none",
-                              fontSize: "0.85rem",
-                              fontWeight: category === c ? "600" : "400",
-                              transition: "all 0.2s"
-                            }}
-                          >
-                            {c}
-                          </button>
+                  <div style={styles.sectionLabel}>⚙️ 옵션</div>
+                  <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
+                    {/* 난이도 영역 (왼쪽 50%) */}
+                    <div style={{ flex: 1, minWidth: 160 }}>
+                      <div style={{ fontSize: "0.8rem", color: "#9a7456", marginBottom: "0.4rem", fontFamily: "sans-serif" }}>난이도</div>
+                      <div style={{ display: "flex", gap: "0.4rem" }}>
+                        {["쉬움","보통","도전"].map(d => (
+                          <button key={d} onClick={() => setDifficulty(d)} style={{
+                            padding: "0.4rem 0.8rem", borderRadius: 10, fontSize: "0.82rem",
+                            fontFamily: "sans-serif", cursor: "pointer",
+                            background: difficulty === d ? "#c4763a" : "rgba(180,140,100,0.1)",
+                            color: difficulty === d ? "#fff" : "#7a4f2e",
+                            border: difficulty === d ? "none" : "1px solid rgba(180,140,100,0.2)",
+                            fontWeight: difficulty === d ? 600 : 400,
+                            transition: "all 0.15s",
+                          }}>{d}</button>
                         ))}
                       </div>
                     </div>
-
-                    <div>
-                      <div style={{ fontSize: "0.85rem", fontWeight: "600", color: "#7a4f2e", marginBottom: "0.5rem", fontFamily: "sans-serif" }}>조리 난이도</div>
-                      <div style={{ display: "flex", gap: "0.4rem" }}>
-                        {["쉬움","보통","도전"].map(d => (
-                          <button 
-                            key={d} 
-                            onClick={() => setDifficulty(d)} 
-                            style={{ 
-                              padding: "0.5rem 1rem", 
-                              borderRadius: 12, 
-                              cursor: "pointer", 
-                              background: difficulty === d ? "#c4763a" : "rgba(180,140,100,0.1)", 
-                              color: difficulty === d ? "#fff" : "#7a4f2e", 
-                              border: "none",
-                              fontSize: "0.85rem",
-                              fontWeight: difficulty === d ? "600" : "400",
-                              transition: "all 0.2s"
-                            }}
-                          >
-                            {d}
-                          </button>
+                    
+                    {/* 카테고리 영역 (오른쪽 50%) */}
+                    <div style={{ flex: 1, minWidth: 160 }}>
+                      <div style={{ fontSize: "0.8rem", color: "#9a7456", marginBottom: "0.4rem", fontFamily: "sans-serif" }}>카테고리</div>
+                      <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap" }}>
+                        {["한식","양식","아무거나"].map(c => (
+                          <button key={c} onClick={() => setCategory(c)} style={{
+                            padding: "0.4rem 0.8rem", borderRadius: 10, fontSize: "0.82rem",
+                            fontFamily: "sans-serif", cursor: "pointer",
+                            background: category === c ? "#c4763a" : "rgba(180,140,100,0.1)",
+                            color: category === c ? "#fff" : "#7a4f2e",
+                            border: category === c ? "none" : "1px solid rgba(180,140,100,0.2)",
+                            fontWeight: category === c ? 600 : 400,
+                            transition: "all 0.15s",
+                          }}>{c}</button>
                         ))}
                       </div>
                     </div>
                   </div>
                 </div>
 
-                <button style={styles.btn} onClick={generateRecipe} disabled={ingredients.length === 0}>🍳 레시피 찾아주세요!</button>
+                <button
+                  style={{
+                    ...styles.btn,
+                    opacity: ingredients.length === 0 ? 0.5 : 1,
+                    cursor: ingredients.length === 0 ? "not-allowed" : "pointer",
+                  }}
+                  onClick={generateRecipe}
+                  disabled={ingredients.length === 0}
+                >
+                  🍳 레시피 찾아주세요!
+                </button>
+
+                {ingredients.length === 0 && (
+                  <p style={{ textAlign: "center", color: "#b08060", fontSize: "0.82rem", marginTop: "0.75rem", fontFamily: "sans-serif" }}>
+                    재료를 1개 이상 입력해주세요
+                  </p>
+                )}
               </div>
             </div>
           );
